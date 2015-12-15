@@ -2,20 +2,18 @@
  Threaded Framework Author: Artur Fast
  email: www.SchirmCharmeMelone@gmail.com
  
- http://forum.processing.org/two/discussion/1836/how-to-smooth-audio-fft-data
- http://code.compartmental.net/minim/examples/AudioEffect/LowPassFSFilter/LowPassFSFilter.pde
- 
- */
+ Warning! Vsync of your graphics card could reduce your logic fps or your render fps to your monitor refresh rate!
+ Warning! you may even want to have Vsync, i cant help you here.
 
-/*to do
+ why we use createGraphics:
+  Unlike the main drawing surface which is completely opaque, surfaces created with createGraphics() can have transparency.
+ This makes it possible to draw into a graphics and maintain the alpha channel. By using save() to write a PNG or TGA file,
+ the transparency of the graphics object will be honored.
+ I wanted to keep open the possibility of pixel level transformations that would look best with a properly scaled alpha channel
+ from: https://www.processing.org/reference/createGraphics_.html
  
- make the volume ring growth acceleration react to high pitch movement in low volume delta songs
- 
- have the volume ring loop along the tunnel wall (shrinks/grows)
- 
- have the vol ring fade out in copies drifiting in a noised or random direction
- 
- */
+*/
+
 
 
 //import and generate Semaphores
@@ -29,24 +27,25 @@ import ddf.minim.analysis.*;
 import ddf.minim.ugens.*;
 import ddf.minim.effects.*;
 
+//audio processing elements
 Minim minim;
 AudioInput in;
 FFT rfft, lfft;
 
-// GLOBAL DATA
-
-//duplicated items with a 2 are used to diffeentiate l/r channels in effects
-
-// test values for printing highs/lows
+//used for printing coordinates/colors/values and drawing center lines
 boolean testing = false;
 
+
+// GLOBAL DATA
+
+//duplicated items ending with 2 or _mix are used to diffeentiate l/r/mix channels in effects
+// test values for printing highs/lows
 float llow = 99999;
 float hhigh = -99999999;
 float llow2 = 99999;
 float hhigh2 = -99999999;
 float llow_mix = 99999;
 float hhigh_mix = -99999999;
-
 
 int pattern = 0;
 int num_patt = 1;
@@ -103,8 +102,6 @@ float gmax = 0;
 float pmax = 0;
 float next_seq = 5;
 
-
-
 //graphics object we will use to buffer our drawing
 PGraphics graphics;
 
@@ -129,12 +126,6 @@ int countRenderCalls = 0;
 //used to know  how many calls since last fps calculation
 int countLogicCallsOld = 0;
 int countRenderCallsOld = 0;
-
-
-/*
-Warning! Vsync of your graphics card could reduce your logic fps or your render  fps to your monitor refresh rate!
- Warning! you may even want to have Vsync, i cant help you here.
- */
 
 //framerate of Logic/Render threads
 //-1 to run as fast as  possible. be prepared to melt your pc!
@@ -181,19 +172,7 @@ void setup() {
   ring_radius = new float[n_rings];
   
   next_seq = random(10);
-
-  /*
-  why we use createGraphics:
-   
-   Unlike the main drawing surface which is completely opaque, surfaces created with createGraphics() can have transparency.
-   This makes it possible to draw into a graphics and maintain the alpha channel. By using save() to write a PNG or TGA file,
-   the transparency of the graphics object will be honored.
-   
-   from: https://www.processing.org/reference/createGraphics_.html
-   
-   */
-
-
+  
   //start Threads
   //Start a Thread for Logic!
   //Use this one for your logic calculations!
@@ -228,7 +207,6 @@ void draw() {
   graphics.background(0);
   backgroundPattern();
   graphics.stroke(40);
-  spectrum();
   
   topSpec();
 
@@ -561,9 +539,9 @@ void equalizerRing(float _x, float _y, int nbars, float t) {
   graphics.stroke(255);
   
   
-  o_rad = last_rad + (o_rad-last_rad)/7.0;
+  o_rad = last_rad + (o_rad-last_rad)/10;
   if(o_rad < last_rad){
-     o_rad+= .05;
+     o_rad+= 1;
   } 
   
   
@@ -632,28 +610,55 @@ void bars(float _x, float _y, float low, float min, float max, float rot) {
 
 void spectrum() {
   int w = 1; 
+  float s_pos = height/2.5;
   for (int i = 0; i < used_in-w; i+=w) {
     float s = spec_x;
-    float s2 = 10;
-    //bottom left
-    graphics.stroke(255-random(5)*i, random(255), random(255), random(20)+5);
-    graphics.line(s*i, height, 0, s*i, height-plevels[i]*s2, 0);
-    graphics.line(s*i, height-plevels[i]*s2, 0, s*(i+w), height-plevels[i+w]*s2, 0);
-
+    float s2 = 5;
     //top left
-    graphics.stroke(255-random(2)*i, random(255)+i, random(255), random(20)+5);
-    graphics.line(s*i, 0, 0, s*i, plevels[i]*s2, 0);
-    graphics.line(s*i, plevels[i]*s2, 0, s*(i+w), plevels[i+w]*s2, 0);
-
-    //bottom right
-    graphics.stroke(255-random(5)*i, random(255), random(255), random(20)+5);
-    graphics.line(width-s*i, height, 0, width-s*i, height-plevels2[i]*s2, 0);
-    graphics.line(width-s*i, height-plevels2[i]*s2, 0, width-s*(i+w), height-plevels2[i+w]*s2, 0);
-
-    //top right
-    graphics.stroke(255-random(2)*i, random(255)+i, random(255), random(20)+5);
-    graphics.line(width-s*i, 0, 0, width-s*i, plevels2[i]*s2, 0);
-    graphics.line(width-s*i, plevels2[i]*s2, 0, width-s*(i+w), plevels2[i+w]*s2, 0);
+    if(gmax > 65){
+      float r =  255-200*sin(i*t);
+      float g =  255-200*sin(2*i);
+      float b = 255-200*sin(4*i-t);
+      //floor(200*sin(8*PI*t/gmax))
+      graphics.stroke(r, g, b, 255);
+      graphics.fill(r, g, b, floor(75*sin(8*PI*t/gmax)));
+    } else if(gmax > 35){
+      //graphics.stroke(40-random(10)+3*sin(t));
+      graphics.stroke(255,255,255, 25+100*sin(PI*t)-100*sin(i*s));
+    } else if(pattern == 0){
+      break; 
+    }
+    
+    float y1 = height-s_pos;
+    float y12 = plevels[i]*s2;
+    if(y12 > 100) y12 *= .75;
+    float y2 = plevels[i+w]*s2;
+    //left
+    graphics.beginShape();
+    graphics.vertex(s*i, y1, 0);
+    graphics.vertex(s*i, y1-y12, 0);
+    graphics.vertex(s*i, y1-y12, 0);
+    graphics.vertex(s*(i+w), y1-y2, 0);
+    
+    graphics.vertex(s*i, y1, 0);
+    graphics.vertex(s*i, y1+y12, 0);
+    graphics.vertex(s*i, y1+y12, 0);
+    graphics.vertex(s*(i+w), y1+y2, 0);
+    graphics.endShape(CLOSE);
+    
+    //right
+    //graphics.beginShape();
+    graphics.beginShape();
+    graphics.vertex(width-s*i, y1, 0);
+    graphics.vertex(width-s*i, y1-y12, 0);
+    graphics.vertex(width-s*i, y1-y12, 0);
+    graphics.vertex(width-s*(i+w), y1-y2, 0);
+    
+    graphics.vertex(width-s*i, y1, 0);
+    graphics.vertex(width-s*i, y1+y12, 0);
+    graphics.vertex(width-s*i, y1+y12, 0);
+    graphics.vertex(width-s*(i+w), y1+y2, 0);
+    graphics.endShape(CLOSE);
   }
 }
 
@@ -661,7 +666,12 @@ void spectrum() {
 void topSpec() {
   float s = spec_x;
   float s2 = 7;
-
+  
+  
+  if(t%4 < 3){ //complement to the laser's time restraint
+    spectrum();
+  }
+  
   for (int i = 0; i < TS_n-1; i++) {
 
     TS_mag_mix[i+1] = TS_mag_mix[i+1]/2.75;
@@ -768,16 +778,17 @@ void aurora_spread(int ind, float tr, float tb, float tg, float ta, int reps) {
 void fourLine(int i, float tr, float tb, float tg, float ta, float br, float bb, float bg, float ba) {
   float s = spec_x;
   float s2 = 20;
+  float max_y = 200;
   
   float lx1 = TS_freq[i]*s;
-  float ly1 = TS_mag[i]*s2;
+  float ly1 = min(max_y, TS_mag[i]*s2);
   float lx2 = TS_freq[i+1]*s;
-  float ly2 = TS_mag[i+1]*s2;
+  float ly2 = min(max_y, TS_mag[i+1]*s2);
   
   float rx1 = TS_freq2[i]*s;
-  float ry1 = TS_mag2[i]*s2;
+  float ry1 = min(max_y, TS_mag2[i]*s2);
   float rx2 = TS_freq2[i+1]*s;
-  float ry2 = TS_mag2[i+1]*s2;
+  float ry2 = min(max_y, TS_mag2[i+1]*s2);
   //bottom left
   graphics.stroke(br, bb, bg, ba);
 
@@ -863,15 +874,16 @@ void all_rings() {
 }
 
 void backgroundPattern() {
-    int hn = 10;
-    int hx = height/hn;
-    int wn = 10;
-    int wx = width/wn;
+  //scale edited to 10x10 at screen dimensions to 15x15 at 1.5x dimensions to reduce edge clipping problems during large volume sweeps
+    int hn = 15;
+    float hx = 1.5*height/hn;
+    int wn = 15;
+    float wx = 1.5*width/wn;
     int q  = 1;
     float s = sin(t);
     graphics.pushMatrix();
     graphics.translate(0, 0, 50-.1*max((200-7*s+gmax), (200-7*s+pmax)));
-    for (int i = -hx - frameCount% (2*hx); i < (hn + 1)*hx; i += hx) {
+    for (float i = -hx - frameCount%(2*hx); i < (hn + 1)*hx; i += hx) {
       
       graphics.noFill();
   
@@ -879,7 +891,7 @@ void backgroundPattern() {
       for (int j = 0; j < wn; j++) {
         float w = j * wx;
         
-        graphics.stroke(7.0*gmax%w, i*222/height%255, 77*sin(t)+55, random(100, 200));
+        graphics.stroke(sin(7.0*gmax*i)*255, sin(t)*222, 77*sin(t)+55, random(100, 200));
 
         if (q % 2 == 0) {
           
