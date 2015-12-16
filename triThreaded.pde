@@ -106,9 +106,8 @@ float next_seq = 5;
 PGraphics graphics;
 
 //window dimensions
-int multiplicator = 80;
-int window_x = 16*multiplicator; //1280
-int window_y = 9*multiplicator; //720
+int window_x = 1900;
+int window_y = 1000;
 
 
 int lastCallLogic = 0; //absolute time when logic thread was called
@@ -141,7 +140,7 @@ void setup() {
   hist_depth = 32;
   //init window
   // size(window_x, window_y); //creates a new window
-  size(1280, 720, P3D);
+  size(1900, 1000, P3D);
   graphics = createGraphics(window_x, window_y, P3D);//creates the draw area
   frameRate(framerateRender); //tells the draw function to run
 
@@ -529,6 +528,8 @@ float last_t = 0;
 void equalizerRing(float _x, float _y, int nbars, float t) {
   
   float s = sin(t);
+  
+  float pad = 50;
 
   float o_rot = -.75*t+2*s;
   float i_rad = 187-5*s;
@@ -549,27 +550,27 @@ void equalizerRing(float _x, float _y, int nbars, float t) {
   graphics.pushMatrix();
   graphics.translate(_x, _y, 0);
   graphics.rotateX(sin(t+90));
-  ring(0, 0, num_tri_oring, o_rad, o_rot, true);
+  ring(0, 0, num_tri_oring, o_rad+pad, o_rot, true);
   graphics.popMatrix();
   
   
   graphics.pushMatrix();
   graphics.translate(_x, _y, 0);
   graphics.rotateX(sin(-(t+90)));
-  ring(0, 0, num_tri_oring, o_rad, -o_rot, true);
+  ring(0, 0, num_tri_oring, o_rad+pad, -o_rot, true);
   graphics.popMatrix();
   
   
   graphics.pushMatrix();
   graphics.translate(_x, _y, 0);
   graphics.rotateY(sin(t+90));
-  ring(0, 0, num_tri_oring, o_rad, o_rot, true);
+  ring(0, 0, num_tri_oring, o_rad+pad, o_rot, true);
   graphics.popMatrix();
   
   graphics.pushMatrix();
   graphics.translate(_x, _y, 0);
   graphics.rotateY(sin(-(t+90)));
-  ring(0, 0, num_tri_oring, o_rad, -o_rot, true);
+  ring(0, 0, num_tri_oring, o_rad+pad, -o_rot, true);
   graphics.popMatrix();
   
   last_rad = o_rad;
@@ -607,32 +608,46 @@ void bars(float _x, float _y, float low, float min, float max, float rot) {
   }
   graphics.popMatrix();
 }
-
+float spec_running = 0;
 void spectrum() {
   int w = 1; 
   float s_pos = height/2.5;
+  
+  spec_running+=gmax/10000.0;
   for (int i = 0; i < used_in-w; i+=w) {
     float s = spec_x;
     float s2 = 5;
+    if(i*s > 2*width/5.0) break;
     //top left
     if(gmax > 65){
       float r =  255-200*sin(i*t);
       float g =  255-200*sin(2*i);
       float b = 255-200*sin(4*i-t);
       //floor(200*sin(8*PI*t/gmax))
-      graphics.stroke(r, g, b, 255);
-      graphics.fill(r, g, b, floor(75*sin(8*PI*t/gmax)));
+      float alph = 255*sin(spec_running)-150*sin(i*0.005);
+      if(alph <= 0) break; 
+      graphics.stroke(r, g, b, alph);
+      graphics.fill(r, g, b, ceil(75*sin(PI*t))-s*i);
     } else if(gmax > 35){
+      spec_running *= .5;
       //graphics.stroke(40-random(10)+3*sin(t));
-      graphics.stroke(255,255,255, 25+100*sin(PI*t)-100*sin(i*s));
+      float alph = 25+100*sin(PI*t)-100*sin(i*0.005);
+      if(alph <= 0) break; 
+      graphics.stroke(255*sin(t),255*sin(t+60),255*sin(t+120), alph);
     } else if(pattern == 0){
+      spec_running *= .75;
       break; 
     }
     
     float y1 = height-s_pos;
     float y12 = plevels[i]*s2;
-    if(y12 > 100) y12 *= .75;
+    if(y12 > 100){ 
+      y12 = min( y12*.5, height/6.0);
+    }
     float y2 = plevels[i+w]*s2;
+    if(y2 > 100){
+      y2 = min( y2*.5, height/6.0);
+    }
     //left
     graphics.beginShape();
     graphics.vertex(s*i, y1, 0);
@@ -668,9 +683,7 @@ void topSpec() {
   float s2 = 7;
   
   
-  if(t%4 < 3){ //complement to the laser's time restraint
-    spectrum();
-  }
+  spectrum();
   
   for (int i = 0; i < TS_n-1; i++) {
 
@@ -713,13 +726,13 @@ void topSpec() {
 void aurora(int i, float tr, float tb, float tg, float ta) {
   float s = spec_x;
   float s2 = 7;
-  
+  float max_y = height/7.0;
   float y_pos = height/2.5;
   
   float lx1 = TS_freq[i]*s;
-  float ly1 = TS_mag[i]*s2+18*sin(t);
+  float ly1 = min(max_y, TS_mag[i]*s2+18*sin(t));
   float rx1 = TS_freq2[i]*s;
-  float ry1 = TS_mag2[i]*s2+10*PI*i/gmax*sin(t);
+  float ry1 = min(max_y, TS_mag2[i]*s2+10*PI*i/gmax*sin(t));
   
   graphics.stroke(tr, tb, tg, ta);
   //left
@@ -732,7 +745,7 @@ void aurora(int i, float tr, float tb, float tg, float ta) {
 
 //hit em with da lazer beams
 void aurora_spread(int ind, float tr, float tb, float tg, float ta, int reps) {
-  float s = spec_x;
+  float s = spec_x*gmax/100.0;
   float s2 = 7;
   
   float lx1 = TS_freq[ind]*s;
@@ -745,24 +758,37 @@ void aurora_spread(int ind, float tr, float tb, float tg, float ta, int reps) {
   float rx2 = TS_freq2[ind+1]*s;
   float ry2 = TS_mag2[ind+1]*s2;
   
+  if(t%20 >19){
+    if(t%40>39){
+      lx2 = lx2 - lx1 + width/2;
+      ly2 =  ly2 - ly1 + height/2;
+      rx2 = rx2 - rx1 + width/2;
+      ry2 = ry2 - ry1 + height/2;
+    }
+    lx1 = 0;
+    ly1 = height/2;
+    rx1 = 0;
+    ry1 = height/2;
+    
+  }
   graphics.stroke(tr, tb, tg, ta);
   graphics.fill(tr*4.0/5.0,tb,tg,ta*2.0/3.0);
   //left
   for (int i = 0; i < reps; i++) {
     graphics.pushMatrix();
-    graphics.translate(lx1, height/3.0, 0);
+    graphics.translate(lx1, height/3.0-10.0*sin(lx1+20*t), 0);
     graphics.rotateZ((90*i+20*sin(2*t)) * ly2/ly1);
     graphics.beginShape(TRIANGLES);
     graphics.vertex(0, 0, 0);
     graphics.vertex(0, ly1*((i+1)*3/reps), 0.0);
-    graphics.vertex(0, ly1*((i+1)*3/reps),-i*sin(t));
+    graphics.vertex(0, ly1*((i+1)*3/reps),-3*i*sin(t));
     graphics.endShape(CLOSE);
     graphics.popMatrix();
   }
   //right
   for (int i = 0; i < reps; i++) {
     graphics.pushMatrix();
-    graphics.translate(width-rx1, height/3.0, 0);
+    graphics.translate(width-rx1, height/3.0-10.0*sin(rx1+20*t), 0);
     graphics.rotateZ((90*i+20*sin(2*t)) * ry2/ry1);
     graphics.beginShape(TRIANGLES);
     graphics.vertex(0, 0, 0);
