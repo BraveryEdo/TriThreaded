@@ -758,19 +758,6 @@ void aurora_spread(int ind, float tr, float tb, float tg, float ta, int reps) {
   float rx2 = TS_freq2[ind+1]*s;
   float ry2 = TS_mag2[ind+1]*s2;
   
-  if(t%20 >19){
-    if(t%40>39){
-      lx2 = lx2 - lx1 + width/2;
-      ly2 =  ly2 - ly1 + height/2;
-      rx2 = rx2 - rx1 + width/2;
-      ry2 = ry2 - ry1 + height/2;
-    }
-    lx1 = 0;
-    ly1 = height/2;
-    rx1 = 0;
-    ry1 = height/2;
-    
-  }
   graphics.stroke(tr, tb, tg, ta);
   graphics.fill(tr*4.0/5.0,tb,tg,ta*2.0/3.0);
   //left
