@@ -1,51 +1,26 @@
-/* Credits *
- Threaded Framework Author: Artur Fast
- email: www.SchirmCharmeMelone@gmail.com
- 
- Warning! Vsync of your graphics card could reduce your logic fps or your render fps to your monitor refresh rate!
- Warning! you may even want to have Vsync, i cant help you here.
-
- why we use createGraphics:
-  Unlike the main drawing surface which is completely opaque, surfaces created with createGraphics() can have transparency.
- This makes it possible to draw into a graphics and maintain the alpha channel. By using save() to write a PNG or TGA file,
- the transparency of the graphics object will be honored.
- I wanted to keep open the possibility of pixel level transformations that would look best with a properly scaled alpha channel
- from: https://www.processing.org/reference/createGraphics_.html
- 
-*/
-
-
-
-//import and generate Semaphores
 import java.util.concurrent.Semaphore;
-static Semaphore semaphoreExample = new Semaphore(1); 
-//audio proccessing imports
+static Semaphore semaphoreExample = new Semaphore(1);
 import ddf.minim.spi.*;
 import ddf.minim.signals.*;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import ddf.minim.ugens.*;
 import ddf.minim.effects.*;
-
 //audio processing elements
 Minim minim;
 AudioInput in;
 FFT rfft, lfft;
-
 //used for printing coordinates/colors/values and drawing center lines
 boolean testing = false;
-
-
 // GLOBAL DATA
-
 //duplicated items ending with 2 or _mix are used to diffeentiate l/r/mix channels in effects
 // test values for printing highs/lows
-float llow = 99999;
-float hhigh = -99999999;
-float llow2 = 99999;
-float hhigh2 = -99999999;
-float llow_mix = 99999;
-float hhigh_mix = -99999999;
+float llow = 100;
+float hhigh = -100;
+float llow2 = 100;
+float hhigh2 = -100;
+float llow_mix = 100;
+float hhigh_mix = -100;
 
 int pattern = 0;
 int num_patt = 1;
@@ -106,8 +81,8 @@ float next_seq = 5;
 PGraphics graphics;
 
 //window dimensions
-int window_x = 1300;
-int window_y = 700;
+int window_x = 1900;
+int window_y = 1000;
 
 
 int lastCallLogic = 0; //absolute time when logic thread was called
@@ -140,7 +115,7 @@ void setup() {
   hist_depth = 32;
   //init window
   // size(window_x, window_y); //creates a new window
-  size(1300, 700, P3D);
+  size(1900, 1000, P3D);
   graphics = createGraphics(window_x, window_y, P3D);//creates the draw area
   frameRate(framerateRender); //tells the draw function to run
 
@@ -208,8 +183,6 @@ void draw() {
   graphics.stroke(40);
   
   topSpec();
-
-
   all_rings();
 
   t += .002;
@@ -600,6 +573,8 @@ void bars(float _x, float _y, float low, float min, float max, float rot) {
     float g = random(255);
     float z = random(5); 
     for (int j = 0; j < bars[i]*mult; j+= bar_height) {
+      //this break clause removes the trailing black boxes when a particular note has been sustained for a while
+      if(r-j <= 0 || b-j <= 0 || g-j <= 0){ break; }
       graphics.stroke(r-j, b-j, g-j, 120+z*j);
       graphics.rect(0, s+low + j, s, s*2/3);
     }
@@ -895,7 +870,8 @@ void backgroundPattern() {
     int q  = 1;
     float s = sin(t);
     graphics.pushMatrix();
-    graphics.translate(0, 0, 50-.1*max((200-7*s+gmax), (200-7*s+pmax)));
+    float scale = 50-.1*max((200-7*s+gmax), (200-7*s+pmax)); 
+    graphics.translate(scale,scale,scale);
     for (float i = -hx - frameCount%(2*hx); i < (hn + 1)*hx; i += hx) {
       
       graphics.noFill();
