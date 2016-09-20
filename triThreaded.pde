@@ -1,5 +1,15 @@
+<<<<<<< HEAD
 import java.util.concurrent.Semaphore;
 static Semaphore semaphoreExample = new Semaphore(1);
+=======
+// A realtime music visualizer, monitors the default recording device (usually a microphone, but gets better results from stereo mix if available)
+
+//import and generate Semaphores
+import java.util.concurrent.Semaphore;
+static Semaphore semaphoreExample = new Semaphore(1);
+
+//audio proccessing library imports
+>>>>>>> origin/master
 import ddf.minim.spi.*;
 import ddf.minim.signals.*;
 import ddf.minim.*;
@@ -12,6 +22,10 @@ AudioInput in;
 FFT rfft, lfft;
 //used for printing coordinates/colors/values and drawing center lines
 boolean testing = false;
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 // GLOBAL DATA
 //duplicated items ending with 2 or _mix are used to diffeentiate l/r/mix channels in effects
 // test values for printing highs/lows
@@ -33,11 +47,11 @@ float last_click = 0;
 
 
 //fft values translated to audio levels
-//current goal level
+//current magnitudes
 float[] levels;
 float[] levels2;
 float[] levels_mix;
-//previous goal levels
+//previous magnitudes
 float[] plevels;
 float[] plevels2;
 float[] plevels_mix;
@@ -81,7 +95,11 @@ float next_seq = 5;
 PGraphics graphics;
 
 //window dimensions
+<<<<<<< HEAD
 int window_x = 1000;
+=======
+int window_x = 1300;
+>>>>>>> origin/master
 int window_y = 700;
 
 
@@ -115,7 +133,11 @@ void setup() {
   hist_depth = 32;
   //init window
   // size(window_x, window_y); //creates a new window
+<<<<<<< HEAD
   size(1000, 700, P3D);
+=======
+  size(1300, 700, P3D);
+>>>>>>> origin/master
   graphics = createGraphics(window_x, window_y, P3D);//creates the draw area
   frameRate(framerateRender); //tells the draw function to run
 
@@ -162,27 +184,20 @@ void setup() {
   miscThread.start();
 }
 
-//draw function. This is our Render Thread
+//This is our Render Thread
 void draw() {
-
   countRenderCalls++;
-
   graphics.beginDraw();
-
-
-  /*
-      all drawing calls have to be called from the graphics object.
-   so graphics.line(0,0,100,100) instead of line(0,0,100,100)
-   */
-  //-------------
-
-  //CODE TO DRAW GOES HERE
-
+  
   graphics.background(0);
   backgroundPattern();
   graphics.stroke(40);
   
   topSpec();
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
   all_rings();
 
   t += .002;
@@ -194,10 +209,8 @@ void draw() {
     graphics.line(width/2.0, 0, 0, width/2.0, height, 0);
   }
 
-  //-------------
   graphics.endDraw();
   image(graphics, 0, 0);
-  //no sleep calculation here because processing  is doing  it for us already
 }
 
 
@@ -290,7 +303,6 @@ Thread logicThread = new Thread(new Runnable() {
       }
       
       for (int i2 = 0; i2 < used_in; i2++) {
-        
         //right
         boolean include2 = false;
         float rdiff = levels2[i2]-plevels2[i2];
@@ -323,7 +335,6 @@ Thread logicThread = new Thread(new Runnable() {
       }
       
       for (int im = 0; im < used_in; im++) {
-        
          //mix
         boolean include_mix = false;
         float mdiff = levels_mix[im]-plevels_mix[im];
@@ -353,7 +364,6 @@ Thread logicThread = new Thread(new Runnable() {
           }
           im += TS_w - 1;
         }
-    
       }
 
       float max = 0;
@@ -495,6 +505,7 @@ Thread miscThread = new Thread(new Runnable() {
   }
 }
 );
+
 float last_rad = 1000;
 float last_t = 0;
 // makes a ring equalizer that displays the levels array on bars number of outputs
@@ -904,12 +915,11 @@ void backgroundPattern() {
 
 
 
-//creates an triangle with its center at _x, _y rotated by _r
+//creates an triangle with its center at _x, _y, _z.
+//rotated by _r
+// _s = triangle size (edge length in pixels)
+// ori = determines if it starts pointed up or down
 void tri(float _x, float _y, float _z, float _r, float _s, boolean ori) {
-  // _x, _y, _z= center point
-  // _r = rotation (radians)
-  // _s = triangle size (edge length in pixels)
-  // ori = determines if it starts pointed up or down
 
   if (testing) {
     println("triangle: ", _x, ", ", _y, " rot: ", (int) _r*360/PI, " s: ", _s, "ori: ", ori);
