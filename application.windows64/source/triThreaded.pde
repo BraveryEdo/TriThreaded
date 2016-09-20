@@ -81,8 +81,8 @@ float next_seq = 5;
 PGraphics graphics;
 
 //window dimensions
-int window_x = 1900;
-int window_y = 1000;
+int window_x = 1000;
+int window_y = 700;
 
 
 int lastCallLogic = 0; //absolute time when logic thread was called
@@ -115,7 +115,7 @@ void setup() {
   hist_depth = 32;
   //init window
   // size(window_x, window_y); //creates a new window
-  size(1900, 1000, P3D);
+  size(1000, 700, P3D);
   graphics = createGraphics(window_x, window_y, P3D);//creates the draw area
   frameRate(framerateRender); //tells the draw function to run
 
@@ -952,4 +952,3 @@ void stop() {
   in.close();
   minim.stop();
 }
-

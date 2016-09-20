@@ -105,8 +105,8 @@ float next_seq = 5;
 PGraphics graphics;
 
 //window dimensions
-int window_x = 1900;
-int window_y = 1000;
+int window_x = 1000;
+int window_y = 700;
 
 
 int lastCallLogic = 0; //absolute time when logic thread was called
@@ -139,11 +139,11 @@ public void setup() {
   hist_depth = 32;
   //init window
   // size(window_x, window_y); //creates a new window
-  size(1900, 1000, P3D);
+  
   graphics = createGraphics(window_x, window_y, P3D);//creates the draw area
   frameRate(framerateRender); //tells the draw function to run
 
-  smooth();
+  
 
   minim = new Minim(this);
   in = minim.getLineIn(Minim.STEREO, sample_rate);
@@ -976,9 +976,9 @@ public void stop() {
   in.close();
   minim.stop();
 }
-
+  public void settings() {  size(1000, 700, P3D);  smooth(); }
   static public void main(String[] passedArgs) {
-    String[] appletArgs = new String[] { "--full-screen", "--bgcolor=#666666", "--stop-color=#cccccc", "TriThreaded" };
+    String[] appletArgs = new String[] { "TriThreaded" };
     if (passedArgs != null) {
       PApplet.main(concat(appletArgs, passedArgs));
     } else {
