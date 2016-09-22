@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-import java.util.concurrent.Semaphore;
-static Semaphore semaphoreExample = new Semaphore(1);
-=======
+
 // A realtime music visualizer, monitors the default recording device (usually a microphone, but gets better results from stereo mix if available)
 
 //import and generate Semaphores
@@ -9,7 +6,6 @@ import java.util.concurrent.Semaphore;
 static Semaphore semaphoreExample = new Semaphore(1);
 
 //audio proccessing library imports
->>>>>>> origin/master
 import ddf.minim.spi.*;
 import ddf.minim.signals.*;
 import ddf.minim.*;
@@ -22,10 +18,7 @@ AudioInput in;
 FFT rfft, lfft;
 //used for printing coordinates/colors/values and drawing center lines
 boolean testing = false;
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/master
 // GLOBAL DATA
 //duplicated items ending with 2 or _mix are used to diffeentiate l/r/mix channels in effects
 // test values for printing highs/lows
@@ -95,11 +88,8 @@ float next_seq = 5;
 PGraphics graphics;
 
 //window dimensions
-<<<<<<< HEAD
+
 int window_x = 1000;
-=======
-int window_x = 1300;
->>>>>>> origin/master
 int window_y = 700;
 
 
@@ -133,11 +123,7 @@ void setup() {
   hist_depth = 32;
   //init window
   // size(window_x, window_y); //creates a new window
-<<<<<<< HEAD
   size(1000, 700, P3D);
-=======
-  size(1300, 700, P3D);
->>>>>>> origin/master
   graphics = createGraphics(window_x, window_y, P3D);//creates the draw area
   frameRate(framerateRender); //tells the draw function to run
 
@@ -194,10 +180,6 @@ void draw() {
   graphics.stroke(40);
   
   topSpec();
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
   all_rings();
 
   t += .002;
